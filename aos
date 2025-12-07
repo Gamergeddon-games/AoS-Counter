@@ -1,0 +1,217 @@
+flutter create hp_tracker
+cd hp_tracker
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const HpTrackerApp());
+}
+
+class HpTrackerApp extends StatelessWidget {
+  const HpTrackerApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'HP Tracker',
+      theme: ThemeData.dark().copyWith(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+      ),
+      home: const HpTrackerPage(),
+    );
+  }
+}
+
+class HpTrackerPage extends StatefulWidget {
+  const HpTrackerPage({super.key});
+
+  @override
+  State<HpTrackerPage> createState() => _HpTrackerPageState();
+}
+
+class _HpTrackerPageState extends State<HpTrackerPage> {
+  String _characterName = '';
+  int _hp = 20;
+
+  int _poison = 0;
+  int _bleeding = 0;
+  int _weakness = 0;
+
+  void _changeHp(int delta) {
+    setState(() {
+      _hp += delta;
+      // optional: HP nicht unter 0 fallen lassen
+      if (_hp < 0) _hp = 0;
+    });
+  }
+
+  void _changePoison(int delta) {
+    setState(() {
+      _poison += delta;
+      if (_poison < 0) _poison = 0;
+    });
+  }
+
+  void _changeBleeding(int delta) {
+    setState(() {
+      _bleeding += delta;
+      if (_bleeding < 0) _bleeding = 0;
+    });
+  }
+
+  void _changeWeakness(int delta) {
+    setState(() {
+      _weakness += delta;
+      if (_weakness < 0) _weakness = 0;
+    });
+  }
+
+  Widget _buildStatusCounter({
+    required String label,
+    required Color color,
+    required int value,
+    required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 10,
+              backgroundColor: color,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            IconButton(
+              onPressed: onDecrement,
+              icon: const Icon(Icons.remove),
+            ),
+            Text(
+              value.toString(),
+              style: const TextStyle(fontSize: 18),
+            ),
+            IconButton(
+              onPressed: onIncrement,
+              icon: const Icon(Icons.add),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('HP Tracker'),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Character name
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Character Name',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _characterName = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // HP display
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Column(
+                  children: [
+                    Text(
+                      _characterName.isEmpty ? 'Unnamed Character' : _characterName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Hit Points',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _hp.toString(),
+                      style: const TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () => _changeHp(-1),
+                          iconSize: 32,
+                          icon: const Icon(Icons.remove_circle_outline),
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          onPressed: () => _changeHp(1),
+                          iconSize: 32,
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Status markers
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildStatusCounter(
+                    label: 'Poisoned',
+                    color: Colors.green,
+                    value: _poison,
+                    onIncrement: () => _changePoison(1),
+                    onDecrement: () => _changePoison(-1),
+                  ),
+                  _buildStatusCounter(
+                    label: 'Bleeding',
+                    color: Colors.red,
+                    value: _bleeding,
+                    onIncrement: () => _changeBleeding(1),
+                    onDecrement: () => _changeBleeding(-1),
+                  ),
+                  _buildStatusCounter(
+                    label: 'Weakened',
+                    color: Colors.amber,
+                    value: _weakness,
+                    onIncrement: () => _changeWeakness(1),
+                    onDecrement: () => _changeWeakness(-1),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
