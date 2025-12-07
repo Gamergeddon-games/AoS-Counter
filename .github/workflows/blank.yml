@@ -1,36 +1,231 @@
-# This is a basic workflow to help you get started with Actions
+import 'package:flutter/material.dart';
 
-name: CI
+void main() {
+  runApp(const HpTrackerApp());
+}
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+class HpTrackerApp extends StatelessWidget {
+  const HpTrackerApp({super.key});
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'HP Tracker',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark().copyWith(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        scaffoldBackgroundColor: const Color(0xFF111111),
+        cardColor: const Color(0xFF1E1E1E),
+      ),
+      home: const HpTrackerPage(),
+    );
+  }
+}
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+class HpTrackerPage extends StatefulWidget {
+  const HpTrackerPage({super.key});
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+  @override
+  State<HpTrackerPage> createState() => _HpTrackerPageState();
+}
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+class _HpTrackerPageState extends State<HpTrackerPage> {
+  final TextEditingController _nameController = TextEditingController();
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+  int _hp = 20;
+
+  int _poison = 0;
+  int _bleeding = 0;
+  int _weakness = 0;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _changeHp(int delta) {
+    setState(() {
+      _hp += delta;
+      if (_hp < 0) _hp = 0;
+    });
+  }
+
+  void _changePoison(int delta) {
+    setState(() {
+      _poison += delta;
+      if (_poison < 0) _poison = 0;
+    });
+  }
+
+  void _changeBleeding(int delta) {
+    setState(() {
+      _bleeding += delta;
+      if (_bleeding < 0) _bleeding = 0;
+    });
+  }
+
+  void _changeWeakness(int delta) {
+    setState(() {
+      _weakness += delta;
+      if (_weakness < 0) _weakness = 0;
+    });
+  }
+
+  Widget _buildStatusCounter({
+    required String label,
+    required Color color,
+    required int value,
+    required VoidCallback onIncrement,
+    required VoidCallback onDecrement,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 10,
+              backgroundColor: color,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: onDecrement,
+              icon: const Icon(Icons.remove),
+            ),
+            Text(
+              value.toString(),
+              style: const TextStyle(fontSize: 18),
+            ),
+            IconButton(
+              onPressed: onIncrement,
+              icon: const Icon(Icons.add),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final characterName = _nameController.text.trim().isEmpty
+        ? 'Unnamed Character'
+        : _nameController.text.trim();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('HP Tracker'),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Character name input
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Character Name',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) {
+                setState(() {}); // damit der Name oben sofort aktualisiert wird
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // HP Card
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                child: Column(
+                  children: [
+                    Text(
+                      characterName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Hit Points',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _hp.toString(),
+                      style: const TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () => _changeHp(-1),
+                          iconSize: 32,
+                          icon: const Icon(Icons.remove_circle_outline),
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          onPressed: () => _changeHp(1),
+                          iconSize: 32,
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Status markers
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildStatusCounter(
+                    label: 'Poisoned',
+                    color: Colors.green,
+                    value: _poison,
+                    onIncrement: () => _changePoison(1),
+                    onDecrement: () => _changePoison(-1),
+                  ),
+                  _buildStatusCounter(
+                    label: 'Bleeding',
+                    color: Colors.red,
+                    value: _bleeding,
+                    onIncrement: () => _changeBleeding(1),
+                    onDecrement: () => _changeBleeding(-1),
+                  ),
+                  _buildStatusCounter(
+                    label: 'Weakened',
+                    color: Colors.amber,
+                    value: _weakness,
+                    onIncrement: () => _changeWeakness(1),
+                    onDecrement: () => _changeWeakness(-1),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
